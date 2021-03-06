@@ -3,6 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"filestore-server/store/ceph"
+	"filestore-server/store/oss"
+	"gopkg.in/amz.v1/s3"
+	"strings"
 
 	"fmt"
 	"io"
@@ -60,10 +63,10 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		//同时将文件写入到ceph存储中
 		newFile.Seek(0, 0)
 		data, _ := ioutil.ReadAll(newFile)
-		// bucket:=ceph.GetCephBucket("userfile")
-		// cephPath:="/ceph/"+fileMeta.FileSha1
-		// _=bucket.Put(cephPath,data,"octet-stream",s3.PublicRead)
-		// fileMeta.Location=cephPath
+		bucket:=ceph.GetCephBucket("userfile")
+		cephPath:="/ceph/"+fileMeta.FileSha1
+		_=bucket.Put(cephPath,data,"octet-stream",s3.PublicRead)
+		fileMeta.Location=cephPath
 		ossPath := "oss/" + fileMeta.FileSha1
 		err = oss.Bucket().PutObject(ossPath, newFile)
 		if err != nil {
